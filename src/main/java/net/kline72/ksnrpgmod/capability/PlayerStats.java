@@ -18,10 +18,10 @@ public class PlayerStats {
     private int perception = 1;
     private int agility = 1;
     private int spirit = 1;
-    private int critChance = (int) 0.01;
-    private int critDmg = (int) 1.01;
-    private int magicResist = (int) 0.1;
-    private int magicDmg = (int) 0.2;
+    private double critChance = (int) 0.001;
+    private double critDmg = (int) 0.05;
+    private double magicResist = (int) 0.1;
+    private double magicDmg = (int) 0.2;
     private int playerLevel = 1;
     private int ula = 0;
     private int attPoints = 0;
@@ -64,16 +64,16 @@ public class PlayerStats {
     public int getSpirit() {
         return spirit;
     }
-    public int getCritChance() {
+    public double getCritChance() {
         return critChance;
     }
-    public int getCritDmg() {
+    public double getCritDmg() {
         return critDmg;
     }
-    public int getMagicResist() {
+    public double getMagicResist() {
         return magicResist;
     }
-    public int getMagicDmg() {
+    public double getMagicDmg() {
         return magicDmg;
     }
     public int getPlayerLevel() {
@@ -140,10 +140,10 @@ public class PlayerStats {
         nbt.putInt("perception", perception);
         nbt.putInt("agility", agility);
         nbt.putInt("spirit", spirit);
-        nbt.putInt("critChance", critChance);
-        nbt.putInt("critDmg", critDmg);
-        nbt.putInt("magicResist", magicResist);
-        nbt.putInt("magicDmg", magicDmg);
+        nbt.putDouble("critChance", critChance);
+        nbt.putDouble("critDmg", critDmg);
+        nbt.putDouble("magicResist", magicResist);
+        nbt.putDouble("magicDmg", magicDmg);
         nbt.putInt("playerLevel", playerLevel);
         nbt.putInt("ula", ula);
         nbt.putInt("attPoints", attPoints);
@@ -162,10 +162,10 @@ public class PlayerStats {
         perception = nbt.getInt("perception");
         agility = nbt.getInt("agility");
         spirit = nbt.getInt("spirit");
-        critChance = nbt.getInt("critChance");
-        critDmg = nbt.getInt("critDmg");
-        magicResist = nbt.getInt("magicResist");
-        magicDmg = nbt.getInt("magicDmg");
+        critChance = nbt.getDouble("critChance");
+        critDmg = nbt.getDouble("critDmg");
+        magicResist = nbt.getDouble("magicResist");
+        magicDmg = nbt.getDouble("magicDmg");
         playerLevel = nbt.getInt("playerLevel");
         ula = nbt.getInt("ula");
         attPoints = nbt.getInt("attPoints");
@@ -205,16 +205,16 @@ public class PlayerStats {
     public void setSpirit(int spirit) {
         this.spirit = spirit;
     }
-    public void setCritChance(int critChance) {
+    public void setCritChance(double critChance) {
         this.critChance = critChance;
     }
-    public void setCritDmg(int critDmg) {
+    public void setCritDmg(double critDmg) {
         this.critDmg = critDmg;
     }
-    public void setMagicResist(int magicResist) {
+    public void setMagicResist(double magicResist) {
         this.magicResist = magicResist;
     }
-    public void setMagicDmg(int magicDmg) {
+    public void setMagicDmg(double magicDmg) {
         this.magicDmg = magicDmg;
     }
     public void setPlayerLevel(int playerLevel) {

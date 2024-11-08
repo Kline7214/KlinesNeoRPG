@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import net.kline72.ksnrpgmod.capability.PlayerStats;
 import net.kline72.ksnrpgmod.capability.PlayerStatsProvider;
 import net.kline72.ksnrpgmod.client.PlayerHudOverlay;
+import net.kline72.ksnrpgmod.events.CombatEventHandler;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -35,6 +36,7 @@ public class KlinesNeoRPG {
 
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(PlayerHudOverlay.class);
+        MinecraftForge.EVENT_BUS.register(CombatEventHandler.class);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
@@ -102,10 +104,10 @@ public class KlinesNeoRPG {
                 stats.setPerception(1);
                 stats.setAgility(1);
                 stats.setSpirit(1);
-                stats.setCritChance(1);
-                stats.setCritDmg(1);
-                stats.setMagicResist(1);
-                stats.setMagicDmg(1);
+                stats.setCritChance(0.001);
+                stats.setCritDmg(0.05);
+                stats.setMagicResist(0.1);
+                stats.setMagicDmg(0.2);
                 stats.setPlayerLevel(1);
                 stats.setUla(0);
                 stats.setAttPoints(0);
