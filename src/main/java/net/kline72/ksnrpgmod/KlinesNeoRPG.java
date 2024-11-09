@@ -5,6 +5,8 @@ import net.kline72.ksnrpgmod.capability.PlayerStats;
 import net.kline72.ksnrpgmod.capability.PlayerStatsProvider;
 import net.kline72.ksnrpgmod.client.PlayerHudOverlay;
 import net.kline72.ksnrpgmod.events.CombatEventHandler;
+import net.kline72.ksnrpgmod.item.KsnrpgCreativeTab;
+import net.kline72.ksnrpgmod.item.KsnrpgItems;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -31,6 +33,9 @@ public class KlinesNeoRPG {
 
     public KlinesNeoRPG(FMLJavaModLoadingContext context) {
         IEventBus modEventBus = context.getModEventBus();
+
+        KsnrpgCreativeTab.register(modEventBus);
+        KsnrpgItems.register(modEventBus);
 
         modEventBus.addListener(this::commonSetup);
 

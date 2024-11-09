@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "klinesneorpg:item/teleport_crystal.png"
+  }
+}

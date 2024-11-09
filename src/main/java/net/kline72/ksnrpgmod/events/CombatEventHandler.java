@@ -20,6 +20,8 @@ public class CombatEventHandler {
                 if (Math.random() < critChance) {
                     event.setAmount((float) (event.getAmount() * critDmg));
                     player.displayClientMessage(Component.translatable("Critical Hit!!!"), true);
+                } else {
+                    player.displayClientMessage(Component.translatable("Not Crit"), true);
                 }
             });
         }
