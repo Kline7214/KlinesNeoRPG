@@ -1,26 +1,21 @@
 package net.kline72.ksnrpgmod;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
 import net.kline72.ksnrpgmod.capability.PlayerStats;
 import net.kline72.ksnrpgmod.capability.PlayerStatsProvider;
 import net.kline72.ksnrpgmod.client.PlayerHudOverlay;
-import net.kline72.ksnrpgmod.client.renderer.EntityHealthBarRenderer;
 import net.kline72.ksnrpgmod.events.CombatEventHandler;
 import net.kline72.ksnrpgmod.item.KsnrpgCreativeTab;
 import net.kline72.ksnrpgmod.item.KsnrpgItems;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
-import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -70,25 +65,7 @@ public class KlinesNeoRPG {
 
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {
-            LOGGER.info("Client setup completed for KlinesNeoRPG.");
         }
-
-        @SubscribeEvent
-        public static void onClientTick(TickEvent.ClientTickEvent event) {
-            if (event.phase != TickEvent.Phase.END || Minecraft.getInstance().player == null) {
-                return;
-            }
-
-            Minecraft minecraft = Minecraft.getInstance();
-            Player player = minecraft.player;
-
-            minecraft.level.entitiesForRendering().forEach(entity -> {
-                if (entity instanceof LivingEntity livingEntity && player.distanceTo(livingEntity) <= 16) {
-                    EntityHealthBarRenderer.renderHealthBar(livingEntity, new PoseStack(), minecraft.renderBuffers().bufferSource(), minecraft.getFrameTime());
-                }
-            });
-        }
-
     }
     @SubscribeEvent
     public static void onAttachCapabilitiesPlayer(AttachCapabilitiesEvent<Entity> event) {
