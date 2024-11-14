@@ -4,5 +4,10 @@
   "item.klinesneorpg.heal_crystal": "Heal Crystal",
   "item.klinesneorpg.cure_crystal": "Cure Crystal",
 
-  "ksnrpgtab.one": "Items"
+  "item.klinesneorpg.anneal_blade": "Anneal Blade",
+  "item.klinesneorpg.elucidator": "Elucidator",
+  "item.klinesneorpg.dark_repulser": "Dark Repulser",
+
+  "ksnrpgtab.one": "Items",
+  "ksnrpgtab.two": "Equipment"
 }

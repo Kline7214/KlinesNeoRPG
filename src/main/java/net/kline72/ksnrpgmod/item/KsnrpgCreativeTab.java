@@ -26,6 +26,16 @@ public class KsnrpgCreativeTab {
                     })
                     .build());
 
+    public static final RegistryObject<CreativeModeTab> KSNRPG_EQUIPMENT = TABS.register("ksnrpg_equipment",
+            () -> CreativeModeTab.builder()
+                    .icon(() -> new ItemStack(KsnrpgItems.CRYSTALLITE_INGOT.get()))
+                    .title(Component.translatable("ksnrpgtab.two"))
+                    .displayItems((itemDisplayParameters, output) -> {
+                        output.accept(KsnrpgItems.ANNEAL_BLADE.get());
+                        output.accept(KsnrpgItems.ELUCIDATOR.get());
+                    })
+                    .build());
+
     public static void register(IEventBus eventBus) {
         TABS.register(eventBus);
     }
