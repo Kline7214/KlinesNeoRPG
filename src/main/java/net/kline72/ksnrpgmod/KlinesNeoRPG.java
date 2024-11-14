@@ -5,6 +5,7 @@ import net.kline72.ksnrpgmod.capability.PlayerStats;
 import net.kline72.ksnrpgmod.capability.PlayerStatsProvider;
 import net.kline72.ksnrpgmod.client.PlayerHudOverlay;
 import net.kline72.ksnrpgmod.events.CombatEventHandler;
+import net.kline72.ksnrpgmod.events.MobScalingHandler;
 import net.kline72.ksnrpgmod.item.KsnrpgCreativeTab;
 import net.kline72.ksnrpgmod.item.KsnrpgItems;
 import net.minecraft.network.chat.Component;
@@ -42,24 +43,22 @@ public class KlinesNeoRPG {
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(PlayerHudOverlay.class);
         MinecraftForge.EVENT_BUS.register(CombatEventHandler.class);
+        MinecraftForge.EVENT_BUS.register(MobScalingHandler.class);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
         LOGGER.info("Setup for KlinesNeoRPG completed.");
     }
 
-    // Add the example block item to the building blocks tab
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
 
     }
 
-    // You can use SubscribeEvent and let the Event Bus discover methods to call
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
         LOGGER.info("Server is starting with KlinesNeoRPG loaded.");
     }
 
-    // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
     @Mod.EventBusSubscriber(modid = KlinesNeoRPG.MODID, value = Dist.CLIENT)
     public static class ClientModEvents {
 
@@ -67,6 +66,7 @@ public class KlinesNeoRPG {
         public static void onClientSetup(FMLClientSetupEvent event) {
         }
     }
+
     @SubscribeEvent
     public static void onAttachCapabilitiesPlayer(AttachCapabilitiesEvent<Entity> event) {
         if (event.getObject() instanceof Player) {
@@ -119,7 +119,6 @@ public class KlinesNeoRPG {
 
                 stats.setInitialized(true);
 
-                // Optionally send a welcome message to the player
                 player.displayClientMessage(Component.translatable("Welcome! Your stats have been initialized."), true);
             }
         });
