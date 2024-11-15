@@ -55,7 +55,8 @@ public class MobScalingHandler {
             }
         }
 
-        mob.setCustomName(Component.translatable("Lv. " + level + "\\n" + mob.getName().getString()));
+        mob.setCustomName(Component.translatable("Lv. " + level + "§NL§" + mob.getName().getString()));
+        mob.setCustomNameVisible(false);
         mob.setHealth(mob.getMaxHealth());
         entityData.putBoolean(SCALED_TAG, true);
     }

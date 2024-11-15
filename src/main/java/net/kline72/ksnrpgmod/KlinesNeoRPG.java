@@ -5,6 +5,7 @@ import net.kline72.ksnrpgmod.capability.PlayerStats;
 import net.kline72.ksnrpgmod.capability.PlayerStatsProvider;
 import net.kline72.ksnrpgmod.client.PlayerHudOverlay;
 import net.kline72.ksnrpgmod.events.CombatEventHandler;
+import net.kline72.ksnrpgmod.events.MobHealthBarRenderer;
 import net.kline72.ksnrpgmod.events.MobScalingHandler;
 import net.kline72.ksnrpgmod.item.KsnrpgCreativeTab;
 import net.kline72.ksnrpgmod.item.KsnrpgItems;
@@ -44,6 +45,7 @@ public class KlinesNeoRPG {
         MinecraftForge.EVENT_BUS.register(PlayerHudOverlay.class);
         MinecraftForge.EVENT_BUS.register(CombatEventHandler.class);
         MinecraftForge.EVENT_BUS.register(MobScalingHandler.class);
+        MinecraftForge.EVENT_BUS.register(MobHealthBarRenderer.class);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
@@ -64,6 +66,7 @@ public class KlinesNeoRPG {
 
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {
+            MinecraftForge.EVENT_BUS.register(new MobHealthBarRenderer());
         }
     }
 

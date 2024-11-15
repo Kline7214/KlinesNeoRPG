@@ -1,10 +1,9 @@
-package net.kline72.ksnrpgmod.datagen;
+package net.kline72.ksnrpgmod.data;
 
 import net.kline72.ksnrpgmod.KlinesNeoRPG;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.models.ModelProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
