@@ -27,7 +27,7 @@ public class PlayerHudOverlay {
     private static final ResourceLocation ULA = new ResourceLocation(KlinesNeoRPG.MODID, "textures/hud/coins.png");
 
     @SubscribeEvent(priority = EventPriority.NORMAL)
-    public static void eventHandler(RenderGuiOverlayEvent.@NotNull Post event) {
+    public static void onRenderGuiOverlay(RenderGuiOverlayEvent.@NotNull Post event) {
 
         Player player = Minecraft.getInstance().player;
 

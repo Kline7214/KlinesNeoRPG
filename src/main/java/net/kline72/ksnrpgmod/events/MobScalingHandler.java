@@ -1,7 +1,6 @@
 package net.kline72.ksnrpgmod.events;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -55,8 +54,6 @@ public class MobScalingHandler {
             }
         }
 
-        mob.setCustomName(Component.translatable("Lv. " + level + "§NL§" + mob.getName().getString()));
-        mob.setCustomNameVisible(false);
         mob.setHealth(mob.getMaxHealth());
         entityData.putBoolean(SCALED_TAG, true);
     }

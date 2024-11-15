@@ -66,7 +66,6 @@ public class KlinesNeoRPG {
 
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {
-            MinecraftForge.EVENT_BUS.register(new MobHealthBarRenderer());
         }
     }
 
