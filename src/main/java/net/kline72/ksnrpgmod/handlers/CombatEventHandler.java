@@ -1,4 +1,4 @@
-package net.kline72.ksnrpgmod.events;
+package net.kline72.ksnrpgmod.handlers;
 
 import net.kline72.ksnrpgmod.KlinesNeoRPG;
 import net.kline72.ksnrpgmod.capability.PlayerStatsProvider;
