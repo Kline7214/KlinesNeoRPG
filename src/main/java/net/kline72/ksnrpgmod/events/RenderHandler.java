@@ -37,16 +37,35 @@ public class RenderHandler {
     private static final ResourceLocation STAMINA = new ResourceLocation(KlinesNeoRPG.MODID, "textures/hud/stamina_bar_filled.png");
     private static final ResourceLocation EXP = new ResourceLocation(KlinesNeoRPG.MODID, "textures/hud/exp_bar_filled.png");
     private static final ResourceLocation ULA = new ResourceLocation(KlinesNeoRPG.MODID, "textures/hud/coins.png");
+    private static final ResourceLocation AIR = new ResourceLocation(KlinesNeoRPG.MODID, "textures/hud/water_bar_filled.png");
 
     private static final ResourceLocation ENTITY_EMPTY_BAR = new ResourceLocation(KlinesNeoRPG.MODID, "textures/gui/entity_bar.png");
     private static final ResourceLocation ENTITY_FILLED_BAR = new ResourceLocation(KlinesNeoRPG.MODID, "textures/gui/entity_bar_filled.png");
+
+    private static float displayedHealthPercentage = 1.0f;
+    private static float displayedManaPercentage = 1.0f;
+    private static float displayedStaminaPercentage = 1.0f;
+    private static float displayedExpPercentage = 1.0f;
+    private static float displayedAirPercentage = 1.0f;
+
+    private static float healthAlpha = 1.0f;
+    private static float manaAlpha = 1.0f;
+    private static float staminaAlpha = 1.0f;
+    private static float expAlpha = 1.0f;
+    private static float airAlpha = 1.0f;
+
+    private static final int LIGHT_GREEN = 0x90EE90; // Light green
+    private static final int YELLOW_GREEN = 0xADFF2F; // Yellowish green
+    private static final int LIGHT_RED = 0xFF6666; // Light red
 
     @SubscribeEvent
     public static void onRenderGuiOverlay(RenderGuiOverlayEvent.Post event) {
         Player player = Minecraft.getInstance().player;
         if (player == null || player.isCreative() || player.isSpectator()) return;
 
-        if (event.getOverlay().id().equals("minecraft:health") || event.getOverlay().id().equals("minecraft:food")) {
+        if (event.getOverlay().id().equals("minecraft:health") ||
+                event.getOverlay().id().equals("minecraft:food") ||
+                event.getOverlay().id().equals("minecraft:air_supply")) {
             event.setCanceled(true);
         }
 
@@ -101,31 +120,87 @@ public class RenderHandler {
         double exp = (player.getCapability(PlayerStatsProvider.PLAYER_STATS, null).orElse(new PlayerStatsProvider())).getExp();
         double maxExp = (player.getCapability(PlayerStatsProvider.PLAYER_STATS, null).orElse(new PlayerStatsProvider())).getMaxExp();
         double expPercentage = maxExp > 0 ? exp / maxExp : 0;
+        double airSupply = player.getAirSupply();
+        double maxAirSupply = player.getMaxAirSupply();
+        double airPercentage = airSupply / maxAirSupply;
 
         int barHpWidth = (int) Math.round(106 * healthPercentage);
+        int barWaterWidth = (int) Math.round(106 * airPercentage);
         int barManaWidth = (int) Math.round(104 * manaPercentage);
         int barStaminaWidth = (int) Math.round(102 * staminaPercentage);
         int barExpWidth = (int) Math.round(102 * expPercentage);
 
-        float red = (float) Math.min(1.0, 2 * (1 - healthPercentage));
-        float green = (float) Math.min(1.0, 2 * healthPercentage);
+        float animationSpeed = 0.02f;
+        displayedHealthPercentage += (float) ((healthPercentage - displayedHealthPercentage) * animationSpeed);
+        displayedManaPercentage += (float) ((manaPercentage - displayedManaPercentage) * animationSpeed);
+        displayedStaminaPercentage += (float) ((staminaPercentage - displayedStaminaPercentage) * animationSpeed);
+        displayedExpPercentage += (float) ((expPercentage - displayedExpPercentage) * animationSpeed);
+        displayedAirPercentage += (float) ((airPercentage - displayedAirPercentage) * animationSpeed);
+
+        int healthColor = interpolateHealthColor(displayedHealthPercentage);
+
+        healthAlpha = updateAlpha(healthAlpha, displayedHealthPercentage < 1.0f);
+        manaAlpha = updateAlpha(manaAlpha, displayedManaPercentage > 0.0f);
+        staminaAlpha = updateAlpha(staminaAlpha, displayedStaminaPercentage > 0.0f);
+        expAlpha = updateAlpha(expAlpha, displayedExpPercentage < 1.0f);
+        airAlpha = updateAlpha(airAlpha, player.isUnderWater() || airSupply < maxAirSupply);
 
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1, 1, 1, 1);
         RenderSystem.setShaderTexture(0, HUD_BG);
         guiGraphics.blit(HUD_BG, 8, 8, 0, 0, 123, 23, 123, 23);
-        guiGraphics.blit(EXP, 11, 26, 0, 0, barExpWidth, 2, 102, 2);
-        guiGraphics.blit(STAMINA, 14, 23, 0, 0, barStaminaWidth, 2, 102, 2);
-        guiGraphics.blit(MANA, 17, 18, 0, 0, barManaWidth, 4, 104, 4);
+
+        renderBar(guiGraphics, HP, 22, 11, (int) (106 * displayedHealthPercentage), 6, 106, healthAlpha, healthColor);
+        renderBar(guiGraphics, MANA, 17, 18, (int) (104 * displayedManaPercentage), 4, 104, manaAlpha, 0xFFFFFF);
+        renderBar(guiGraphics, STAMINA, 14, 23, (int) (102 * displayedStaminaPercentage), 2, 102, staminaAlpha, 0xFFFFFF);
+        renderBar(guiGraphics, EXP, 11, 26, (int) (102 * displayedExpPercentage), 2, 102, expAlpha, 0xFFFFFF);
         guiGraphics.blit(ULA, 8, 33, 0, 0, 16, 16, 16, 16);
 
         guiGraphics.drawString(Minecraft.getInstance().font, Component.literal((int) (healthPercentage * 100) + "%"), 133, 10, -1, false);
         guiGraphics.drawString(Minecraft.getInstance().font, Component.literal((int) (manaPercentage * 100) + "%"), 129, 17, -1, false);
 
-        RenderSystem.setShaderColor(red, green, 0, 1);
-        guiGraphics.blit(HP, 22, 11, 0, 0, barHpWidth, 6, 106, 6);
+        if (player.isUnderWater() || airSupply < maxAirSupply) {
+            renderBar(guiGraphics, AIR, 22, 11, (int) (106 * displayedAirPercentage), 6, 106, airAlpha, 0xFFFFFF);
+        }
+    }
 
-        RenderSystem.setShaderColor(1, 1, 1, 1);
+    private static int interpolateHealthColor(float healthPercentage) {
+        if (healthPercentage >= 0.5f) {
+            return interpolateColor(LIGHT_GREEN, YELLOW_GREEN, (healthPercentage - 0.5f) * 2.0f);
+        } else {
+            return interpolateColor(YELLOW_GREEN, LIGHT_RED, healthPercentage * 2.0f);
+        }
+    }
+
+    private static int interpolateColor(int color1, int color2, float factor) {
+        int r1 = (color1 >> 16) & 0xFF;
+        int g1 = (color1 >> 8) & 0xFF;
+        int b1 = color1 & 0xFF;
+
+        int r2 = (color2 >> 16) & 0xFF;
+        int g2 = (color2 >> 8) & 0xFF;
+        int b2 = color2 & 0xFF;
+
+        int r = (int) (r1 + (r2 - r1) * factor);
+        int g = (int) (g1 + (g2 - g1) * factor);
+        int b = (int) (b1 + (b2 - b1) * factor);
+
+        return (r << 16) | (g << 8) | b;
+    }
+
+    private static float updateAlpha(float currentAlpha, boolean isActive) {
+        float fadeSpeed = 0.02f;
+        return isActive ? Math.min(1.0f, currentAlpha + fadeSpeed) : Math.max(0.0f, currentAlpha - fadeSpeed);
+    }
+
+    private static void renderBar(GuiGraphics guiGraphics, ResourceLocation texture, int x, int y, int width, int height, int textureWidth, float alpha, int color) {
+        float red = ((color >> 16) & 0xFF) / 255.0f;
+        float green = ((color >> 8) & 0xFF) / 255.0f;
+        float blue = (color & 0xFF) / 255.0f;
+
+        RenderSystem.setShaderColor(red, green, blue, alpha);
+        RenderSystem.setShaderTexture(0, texture);
+        guiGraphics.blit(texture, x, y, 0, 0, width, height, textureWidth, height);
+        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
     private static boolean shouldRender1(Player player, LivingEntity entity) {
@@ -158,15 +233,7 @@ public class RenderHandler {
                 ClipContext.Fluid.NONE,
                 player
         ));
-        KlinesNeoRPG.LOGGER.info("Raycasting for entity {}: Eye position: {}, Entity position: {}, Hit type: {}, Hit distance: {}",
-                entity.getDisplayName().getString(),
-                eyePosition,
-                entityPosition,
-                hitResult.getType(),
-                hitResult.getLocation().distanceTo(entityPosition)
-        );
-        boolean result = hitResult.getType() == HitResult.Type.MISS || hitResult.getLocation().distanceTo(entityPosition) < 0.1;
-        return result;
+        return hitResult.getType() == HitResult.Type.MISS || hitResult.getLocation().distanceTo(entityPosition) < 0.1;
     }
 
     private static void renderEntityHealthBar(PoseStack poseStack, LivingEntity entity, MultiBufferSource bufferSource, float healthRatio) {
