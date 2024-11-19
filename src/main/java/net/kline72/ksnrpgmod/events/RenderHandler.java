@@ -4,7 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.kline72.ksnrpgmod.KlinesNeoRPG;
 import net.kline72.ksnrpgmod.capability.PlayerStatsProvider;
-import net.kline72.ksnrpgmod.util.PlayerPvPTracker;
+import net.kline72.ksnrpgmod.util.PvPUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -75,7 +75,7 @@ public class RenderHandler {
 
     private static int determineEntityIndicatorColor(Player player, LivingEntity entity) {
         if (entity instanceof Player targetPlayer) {
-            return PlayerPvPTracker.getIndicatorColor(targetPlayer);
+            return PvPUtil.getIndicatorColor(targetPlayer);
         } else if (entity instanceof Animal) {
             return 0x00FF00; // Green for passive mobs
         } else if (entity instanceof Mob mob) {

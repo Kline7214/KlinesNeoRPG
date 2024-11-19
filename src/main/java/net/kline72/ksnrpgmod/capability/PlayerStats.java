@@ -229,4 +229,14 @@ public class PlayerStats {
     public void setInitialized(boolean initialized) {
         this.initialized = initialized;
     }
+
+    public void checkLevelUp() {
+        if (exp >= maxExp) {
+            exp = 0;
+            playerLevel += 1;
+            attPoints += 5;
+
+            maxExp = (int) (maxExp * 1.75);
+        }
+    }
 }

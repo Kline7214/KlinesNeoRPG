@@ -263,7 +263,7 @@
 [15Nov2024 11:27:37.184] [modloading-worker-0/DEBUG] [net.minecraftforge.fml.javafmlmod.AutomaticEventSubscriber/LOADING]: Auto-subscribing net.kline72.ksnrpgmod.client.PlayerHudOverlay to FORGE
 [15Nov2024 11:27:37.185] [modloading-worker-0/DEBUG] [net.minecraftforge.fml.javafmlmod.AutomaticEventSubscriber/LOADING]: Auto-subscribing net.kline72.ksnrpgmod.datagen.DataGens to MOD
 [15Nov2024 11:27:37.189] [modloading-worker-0/DEBUG] [net.minecraftforge.fml.javafmlmod.AutomaticEventSubscriber/LOADING]: Auto-subscribing net.kline72.ksnrpgmod.events.CombatEventHandler to FORGE
-[15Nov2024 11:27:37.189] [modloading-worker-0/DEBUG] [net.minecraftforge.fml.javafmlmod.AutomaticEventSubscriber/LOADING]: Auto-subscribing net.kline72.ksnrpgmod.events.MobScalingHandler to FORGE
+[15Nov2024 11:27:37.189] [modloading-worker-0/DEBUG] [net.minecraftforge.fml.javafmlmod.AutomaticEventSubscriber/LOADING]: Auto-subscribing net.kline72.ksnrpgmod.util.MobScalingUtil to FORGE
 [15Nov2024 11:27:37.189] [modloading-worker-0/DEBUG] [net.minecraftforge.fml.javafmlmod.AutomaticEventSubscriber/LOADING]: Auto-subscribing net.kline72.ksnrpgmod.KlinesNeoRPG$ClientModEvents to FORGE
 [15Nov2024 11:27:37.213] [modloading-worker-0/DEBUG] [io.netty.util.internal.PlatformDependent0/]: -Dio.netty.noUnsafe: false
 [15Nov2024 11:27:37.214] [modloading-worker-0/DEBUG] [io.netty.util.internal.PlatformDependent0/]: Java version: 17

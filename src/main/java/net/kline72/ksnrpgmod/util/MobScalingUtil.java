@@ -1,4 +1,4 @@
-package net.kline72.ksnrpgmod.events;
+package net.kline72.ksnrpgmod.util;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -13,7 +13,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = "klinesneorpg", bus = Mod.EventBusSubscriber.Bus.FORGE)
-public class MobScalingHandler {
+public class MobScalingUtil {
     private static final int DISTANCE_PER_LEVEL = 1000;
     private static final double HOSTILE_ATTACK_INCREMENT = 0.2;
     private static final double HOSTILE_HEALTH_INCREMENT = 1.0;

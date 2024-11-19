@@ -1,10 +1,7 @@
 package net.kline72.ksnrpgmod.util;
 
 import net.kline72.ksnrpgmod.KlinesNeoRPG;
-import net.minecraft.client.Minecraft;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.Minecart;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -15,7 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Mod.EventBusSubscriber(modid = KlinesNeoRPG.MODID)
-public class PlayerPvPTracker {
+public class PvPUtil {
     private static final Map<UUID, Long> yellowTimers = new HashMap<>();
     private static final Map<UUID, Long> redTimers = new HashMap<>();
 
