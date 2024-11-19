@@ -1,4 +1,4 @@
-package net.kline72.ksnrpgmod.handlers;
+package net.kline72.ksnrpgmod.events;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;

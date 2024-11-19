@@ -1,17 +1,22 @@
-package net.kline72.ksnrpgmod.handlers;
+package net.kline72.ksnrpgmod.events;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.kline72.ksnrpgmod.KlinesNeoRPG;
 import net.kline72.ksnrpgmod.capability.PlayerStatsProvider;
+import net.kline72.ksnrpgmod.util.PlayerPvPTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.BlockHitResult;
@@ -20,8 +25,12 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderGuiOverlayEvent;
 import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import org.joml.Matrix4f;
 
+@Mod.EventBusSubscriber(modid = KlinesNeoRPG.MODID)
 public class RenderHandler {
+
     private static final ResourceLocation HUD_BG = new ResourceLocation(KlinesNeoRPG.MODID, "textures/hud/hud_empty.png");
     private static final ResourceLocation HP = new ResourceLocation(KlinesNeoRPG.MODID, "textures/hud/hp_bar_filled.png");
     private static final ResourceLocation MANA = new ResourceLocation(KlinesNeoRPG.MODID, "textures/hud/mana_bar_filled.png");
@@ -42,11 +51,44 @@ public class RenderHandler {
         }
 
         drawPlayerHud(event.getGuiGraphics(), player);
-
-        KlinesNeoRPG.LOGGER.info("Rendering player HUD...");
     }
 
-    private static void drawPlayerHud(GuiGraphics guiGraphics, Player player) {
+    @SubscribeEvent
+    public static void onRenderLiving(RenderLivingEvent.Post event) {
+        LivingEntity entity = event.getEntity();
+        Minecraft minecraft = Minecraft.getInstance();
+        Player player = Minecraft.getInstance().player;
+
+        if (player == null) return;
+
+        if (shouldRender1(player, entity)) {
+            float health = entity.getHealth();
+            float maxHealth = entity.getMaxHealth();
+            renderEntityHealthBar(event.getPoseStack(), entity, event.getMultiBufferSource(), health / maxHealth);
+        }
+
+        if (shouldRender2(player, entity)) {
+            int color = determineEntityIndicatorColor(player, entity);
+            renderEntityIndicator(event.getPoseStack(), event.getMultiBufferSource(), entity, color, event.getPartialTick());
+        }
+    }
+
+    private static int determineEntityIndicatorColor(Player player, LivingEntity entity) {
+        if (entity instanceof Player targetPlayer) {
+            return PlayerPvPTracker.getIndicatorColor(targetPlayer);
+        } else if (entity instanceof Animal) {
+            return 0x00FF00; // Green for passive mobs
+        } else if (entity instanceof Mob mob) {
+            if (mob.getTarget() == player && mob.canAttack(player)) {
+                return 0xFF0000; // Red for mobs targeting the player
+            } else {
+                return 0xFFFF00; // Yellow for hostile mobs not targeting the player
+            }
+        }
+        return 0xFFFFFF; // Default white
+    }
+
+    public static void drawPlayerHud(GuiGraphics guiGraphics, Player player) {
         double health = player.getHealth();
         double maxHealth = player.getMaxHealth();
         double healthPercentage = health / maxHealth;
@@ -86,23 +128,7 @@ public class RenderHandler {
         RenderSystem.setShaderColor(1, 1, 1, 1);
     }
 
-    @SubscribeEvent
-    public static void onRenderLiving(RenderLivingEvent.Post event) {
-        LivingEntity entity = event.getEntity();
-        Minecraft minecraft = Minecraft.getInstance();
-        Player player = Minecraft.getInstance().player;
-
-        if (player == null || !shouldRender(player, entity)) return;
-
-        float health = entity.getHealth();
-        float maxHealth = entity.getMaxHealth();
-
-        renderEntityHealthBar(event.getPoseStack(), entity, event.getMultiBufferSource(), health / maxHealth);
-
-        KlinesNeoRPG.LOGGER.info("Rendering entity health bar...");
-    }
-
-    private static boolean shouldRender(Player player, LivingEntity entity) {
+    private static boolean shouldRender1(Player player, LivingEntity entity) {
         double maxDistance = 16.0;
 
         if (player.level() != entity.level()) return false;
@@ -118,6 +144,29 @@ public class RenderHandler {
                 player
         ));
         return hitResult.getType() == HitResult.Type.MISS || !entity.level().getBlockState(hitResult.getBlockPos()).isAir();
+    }
+
+    private static boolean shouldRender2(Player player, LivingEntity entity) {
+        if (player.level() != entity.level()) return false;
+
+        Vec3 eyePosition = player.getEyePosition(1.0F);
+        Vec3 entityPosition = entity.position().add(0, entity.getBbHeight() / 2, 0);
+        BlockHitResult hitResult = player.level().clip(new ClipContext(
+                eyePosition,
+                entityPosition,
+                ClipContext.Block.VISUAL,
+                ClipContext.Fluid.NONE,
+                player
+        ));
+        KlinesNeoRPG.LOGGER.info("Raycasting for entity {}: Eye position: {}, Entity position: {}, Hit type: {}, Hit distance: {}",
+                entity.getDisplayName().getString(),
+                eyePosition,
+                entityPosition,
+                hitResult.getType(),
+                hitResult.getLocation().distanceTo(entityPosition)
+        );
+        boolean result = hitResult.getType() == HitResult.Type.MISS || hitResult.getLocation().distanceTo(entityPosition) < 0.1;
+        return result;
     }
 
     private static void renderEntityHealthBar(PoseStack poseStack, LivingEntity entity, MultiBufferSource bufferSource, float healthRatio) {
@@ -170,5 +219,58 @@ public class RenderHandler {
 
     private static int getEntityLevel(LivingEntity entity) {
         return entity.getPersistentData().getInt("level");
+    }
+
+    private static void renderEntityIndicator(PoseStack poseStack, MultiBufferSource bufferSource, LivingEntity entity, int color, float partialTick) {
+        Minecraft minecraft = Minecraft.getInstance();
+
+        double x = Mth.lerp(partialTick, entity.xOld, entity.getX());
+        double y = Mth.lerp(partialTick, entity.yOld, entity.getY()) + entity.getBbHeight() + 0.5; // Above the entity
+        double z = Mth.lerp(partialTick, entity.zOld, entity.getZ());
+
+        Vec3 cameraPos = minecraft.getEntityRenderDispatcher().camera.getPosition();
+
+        poseStack.pushPose();
+        poseStack.translate(x - cameraPos.x, y - cameraPos.y, z - cameraPos.z);
+
+        poseStack.mulPose(minecraft.getEntityRenderDispatcher().cameraOrientation());
+        poseStack.scale(0.5F, 0.5F, 0.5F);
+
+        VertexConsumer vertexConsumer = bufferSource.getBuffer(RenderType.lines());
+        renderColoredPyramid(poseStack.last().pose(), vertexConsumer, color);
+
+        poseStack.popPose();
+    }
+
+    private static void renderColoredPyramid(Matrix4f matrix, VertexConsumer vertexConsumer, int color) {
+        float red = ((color >> 16) & 255) / 255.0F;
+        float green = ((color >> 8) & 255) / 255.0F;
+        float blue = (color & 255) / 255.0F;
+
+        // Base of the pyramid (square)
+        vertexConsumer.vertex(matrix, -0.5F, 0.0F, -0.5F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
+        vertexConsumer.vertex(matrix, 0.5F, 0.0F, -0.5F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
+
+        vertexConsumer.vertex(matrix, 0.5F, 0.0F, -0.5F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
+        vertexConsumer.vertex(matrix, 0.5F, 0.0F, 0.5F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
+
+        vertexConsumer.vertex(matrix, 0.5F, 0.0F, 0.5F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
+        vertexConsumer.vertex(matrix, -0.5F, 0.0F, 0.5F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
+
+        vertexConsumer.vertex(matrix, -0.5F, 0.0F, 0.5F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
+        vertexConsumer.vertex(matrix, -0.5F, 0.0F, -0.5F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
+
+        // Pyramid sides (connecting base to apex)
+        vertexConsumer.vertex(matrix, 0.0F, 1.0F, 0.0F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
+        vertexConsumer.vertex(matrix, -0.5F, 0.0F, -0.5F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
+
+        vertexConsumer.vertex(matrix, 0.0F, 1.0F, 0.0F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
+        vertexConsumer.vertex(matrix, 0.5F, 0.0F, -0.5F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
+
+        vertexConsumer.vertex(matrix, 0.0F, 1.0F, 0.0F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
+        vertexConsumer.vertex(matrix, 0.5F, 0.0F, 0.5F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
+
+        vertexConsumer.vertex(matrix, 0.0F, 1.0F, 0.0F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
+        vertexConsumer.vertex(matrix, -0.5F, 0.0F, 0.5F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
     }
 }
