@@ -4,21 +4,24 @@ import com.mojang.logging.LogUtils;
 import net.kline72.ksnrpgmod.capability.PlayerStats;
 import net.kline72.ksnrpgmod.capability.PlayerStatsProvider;
 import net.kline72.ksnrpgmod.events.CombatEventHandler;
-import net.kline72.ksnrpgmod.events.RenderHandler;
+import net.kline72.ksnrpgmod.events.HpBarRenderer;
+//import net.kline72.ksnrpgmod.events.MobIndicatorRenderer;
 import net.kline72.ksnrpgmod.item.KsnrpgCreativeTab;
 import net.kline72.ksnrpgmod.item.KsnrpgItems;
 import net.kline72.ksnrpgmod.util.LvUpUtil;
 import net.kline72.ksnrpgmod.util.PvPUtil;
-import net.kline72.ksnrpgmod.util.MobScalingUtil;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -44,11 +47,11 @@ public class KlinesNeoRPG {
 
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(CombatEventHandler.class);
-        MinecraftForge.EVENT_BUS.register(RenderHandler.class);
+        MinecraftForge.EVENT_BUS.register(HpBarRenderer.class);
+      //MinecraftForge.EVENT_BUS.register(MobIndicatorRenderer.class);
 
         MinecraftForge.EVENT_BUS.register(LvUpUtil.class);
         MinecraftForge.EVENT_BUS.register(PvPUtil.class);
-        MinecraftForge.EVENT_BUS.register(MobScalingUtil.class);
 
     }
 
@@ -74,12 +77,16 @@ public class KlinesNeoRPG {
     }
 
     @SubscribeEvent
-    public static void onAttachCapabilitiesPlayer(AttachCapabilitiesEvent<Entity> event) {
+    public static void onAttachCapabilities(AttachCapabilitiesEvent<Entity> event) {
         if (event.getObject() instanceof Player) {
-            if (!event.getObject().getCapability(PlayerStatsProvider.PLAYER_STATS).isPresent()) {
-                event.addCapability(new ResourceLocation(KlinesNeoRPG.MODID, "player_stats"), new PlayerStatsProvider());
-                LOGGER.info("PlayerStats capability attached to player.");
-            }
+            attachPlayerStatsCapability(event);
+        }
+    }
+
+    private static void attachPlayerStatsCapability(AttachCapabilitiesEvent<Entity> event) {
+        if (!event.getObject().getCapability(PlayerStatsProvider.PLAYER_STATS).isPresent()) {
+            event.addCapability(new ResourceLocation(KlinesNeoRPG.MODID, "player_stats"), new PlayerStatsProvider());
+            LOGGER.info("PlayerStats capability attached to player.");
         }
     }
 

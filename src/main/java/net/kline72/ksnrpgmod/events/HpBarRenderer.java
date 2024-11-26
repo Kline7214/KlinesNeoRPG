@@ -4,19 +4,15 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.kline72.ksnrpgmod.KlinesNeoRPG;
 import net.kline72.ksnrpgmod.capability.PlayerStatsProvider;
-import net.kline72.ksnrpgmod.util.PvPUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.BlockHitResult;
@@ -24,12 +20,12 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderGuiOverlayEvent;
 import net.minecraftforge.client.event.RenderLivingEvent;
+import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import org.joml.Matrix4f;
 
-@Mod.EventBusSubscriber(modid = KlinesNeoRPG.MODID)
-public class RenderHandler {
+@Mod.EventBusSubscriber(modid = KlinesNeoRPG.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+public class HpBarRenderer {
 
     private static final ResourceLocation HUD_BG = new ResourceLocation(KlinesNeoRPG.MODID, "textures/hud/hud_empty.png");
     private static final ResourceLocation HP = new ResourceLocation(KlinesNeoRPG.MODID, "textures/hud/hp_bar_filled.png");
@@ -54,21 +50,20 @@ public class RenderHandler {
     private static float expAlpha = 1.0f;
     private static float airAlpha = 1.0f;
 
-    private static final int LIGHT_GREEN = 0x90EE90; // Light green
-    private static final int YELLOW_GREEN = 0xADFF2F; // Yellowish green
-    private static final int LIGHT_RED = 0xFF6666; // Light red
+    private static final int GREEN = 0x42F566; // Light green
+    private static final int YELLOW_GREEN = 0xC5F542; // Yellowish green
+    private static final int RED = 0xF56042; // Light red
+
 
     @SubscribeEvent
-    public static void onRenderGuiOverlay(RenderGuiOverlayEvent.Post event) {
+    public static void onRenderGuiOverlay(RenderGuiOverlayEvent.Pre event) {
         Player player = Minecraft.getInstance().player;
-        if (player == null || player.isCreative() || player.isSpectator()) return;
-
-        if (event.getOverlay().id().equals("minecraft:health") ||
-                event.getOverlay().id().equals("minecraft:food") ||
-                event.getOverlay().id().equals("minecraft:air_supply")) {
+        if (player == null || player.isCreative() || player.isSpectator())return;
+        if (event.getOverlay() == VanillaGuiOverlay.PLAYER_HEALTH.type() ||
+                event.getOverlay() == VanillaGuiOverlay.FOOD_LEVEL.type() ||
+                event.getOverlay() == VanillaGuiOverlay.AIR_LEVEL.type()) {
             event.setCanceled(true);
         }
-
         drawPlayerHud(event.getGuiGraphics(), player);
     }
 
@@ -80,31 +75,15 @@ public class RenderHandler {
 
         if (player == null) return;
 
-        if (shouldRender1(player, entity)) {
+        if (entity == player && minecraft.options.getCameraType().isFirstPerson()) {
+            return;
+        }
+
+        if (renderInView(player, entity)) {
             float health = entity.getHealth();
             float maxHealth = entity.getMaxHealth();
-            renderEntityHealthBar(event.getPoseStack(), entity, event.getMultiBufferSource(), health / maxHealth);
+            renderText(event.getPoseStack(), entity, event.getMultiBufferSource(), health / maxHealth);
         }
-
-        if (shouldRender2(player, entity)) {
-            int color = determineEntityIndicatorColor(player, entity);
-            renderEntityIndicator(event.getPoseStack(), event.getMultiBufferSource(), entity, color, event.getPartialTick());
-        }
-    }
-
-    private static int determineEntityIndicatorColor(Player player, LivingEntity entity) {
-        if (entity instanceof Player targetPlayer) {
-            return PvPUtil.getIndicatorColor(targetPlayer);
-        } else if (entity instanceof Animal) {
-            return 0x00FF00; // Green for passive mobs
-        } else if (entity instanceof Mob mob) {
-            if (mob.getTarget() == player && mob.canAttack(player)) {
-                return 0xFF0000; // Red for mobs targeting the player
-            } else {
-                return 0xFFFF00; // Yellow for hostile mobs not targeting the player
-            }
-        }
-        return 0xFFFFFF; // Default white
     }
 
     public static void drawPlayerHud(GuiGraphics guiGraphics, Player player) {
@@ -123,12 +102,6 @@ public class RenderHandler {
         double airSupply = player.getAirSupply();
         double maxAirSupply = player.getMaxAirSupply();
         double airPercentage = airSupply / maxAirSupply;
-
-        int barHpWidth = (int) Math.round(106 * healthPercentage);
-        int barWaterWidth = (int) Math.round(106 * airPercentage);
-        int barManaWidth = (int) Math.round(104 * manaPercentage);
-        int barStaminaWidth = (int) Math.round(102 * staminaPercentage);
-        int barExpWidth = (int) Math.round(102 * expPercentage);
 
         float animationSpeed = 0.02f;
         displayedHealthPercentage += (float) ((healthPercentage - displayedHealthPercentage) * animationSpeed);
@@ -165,9 +138,9 @@ public class RenderHandler {
 
     private static int interpolateHealthColor(float healthPercentage) {
         if (healthPercentage >= 0.5f) {
-            return interpolateColor(LIGHT_GREEN, YELLOW_GREEN, (healthPercentage - 0.5f) * 2.0f);
+            return interpolateColor(GREEN, YELLOW_GREEN, (healthPercentage - 0.5f) * 2.0f);
         } else {
-            return interpolateColor(YELLOW_GREEN, LIGHT_RED, healthPercentage * 2.0f);
+            return interpolateColor(YELLOW_GREEN, RED, healthPercentage * 2.0f);
         }
     }
 
@@ -203,11 +176,13 @@ public class RenderHandler {
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
-    private static boolean shouldRender1(Player player, LivingEntity entity) {
-        double maxDistance = 16.0;
-
+    private static boolean renderInView(Player player, LivingEntity entity) {
         if (player.level() != entity.level()) return false;
+
+        double maxDistance = 16.0;
         if (player.distanceTo(entity) > maxDistance) return false;
+        if (entity.isInvisible()) return false;
+        if (entity.isCrouching()) return false;
 
         Vec3 eyePosition = player.getEyePosition(1.0F);
         Vec3 entityPosition = entity.position().add(0, entity.getBbHeight() / 2, 0);
@@ -218,44 +193,39 @@ public class RenderHandler {
                 ClipContext.Fluid.NONE,
                 player
         ));
-        return hitResult.getType() == HitResult.Type.MISS || !entity.level().getBlockState(hitResult.getBlockPos()).isAir();
+        return hitResult.getType() != HitResult.Type.BLOCK;
     }
 
-    private static boolean shouldRender2(Player player, LivingEntity entity) {
-        if (player.level() != entity.level()) return false;
-
-        Vec3 eyePosition = player.getEyePosition(1.0F);
-        Vec3 entityPosition = entity.position().add(0, entity.getBbHeight() / 2, 0);
-        BlockHitResult hitResult = player.level().clip(new ClipContext(
-                eyePosition,
-                entityPosition,
-                ClipContext.Block.VISUAL,
-                ClipContext.Fluid.NONE,
-                player
-        ));
-        return hitResult.getType() == HitResult.Type.MISS || hitResult.getLocation().distanceTo(entityPosition) < 0.1;
-    }
-
-    private static void renderEntityHealthBar(PoseStack poseStack, LivingEntity entity, MultiBufferSource bufferSource, float healthRatio) {
+    private static void renderText(PoseStack poseStack, LivingEntity entity, MultiBufferSource bufferSource, float healthRatio) {
         Minecraft minecraft = Minecraft.getInstance();
         Font font = minecraft.font;
+        Player player = minecraft.player;
+
+        String eName = entity.getDisplayName().getString();
+        double eLv = entity.getPersistentData().getDouble("mobLevel");
+        String eLvText = "Lv: " + eLv;
+
+        String pName = player.getDisplayName().getString();
+        int pLv = (player.getCapability(PlayerStatsProvider.PLAYER_STATS, null).orElse(new PlayerStatsProvider())).getPlayerLevel();
+        String pLvText = "Lv: " + pLv;
 
         poseStack.pushPose();
         poseStack.translate(0, entity.getBbHeight() + 0.5, 0);
         poseStack.mulPose(minecraft.getEntityRenderDispatcher().cameraOrientation());
         poseStack.scale(-0.025F, -0.025F, 0.025F);
+        if (entity instanceof Mob) {
+            font.drawInBatch(eName, -font.width(eName) / 2F, -16, 0xFFFFFF, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, 15728880);
+            font.drawInBatch(eLvText, -font.width(eLvText) / 2F, -8, 0xFFFFFF, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, 15728880);
+        } else if (entity instanceof Player) {
+            font.drawInBatch(pName, -font.width(pName) / 2F, -16, 0xFFFFFF, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, 15728880);
+            font.drawInBatch(pLvText, -font.width(pLvText) / 2F, -8, 0xFFFFFF, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, 15728880);
+        }
 
-        font.drawInBatch(entity.getDisplayName(), -font.width(entity.getDisplayName()) / 2F, -16, 0xFFFFFF, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, 15728880);
-
-        int level = getEntityLevel(entity);
-        String levelText = "Lv. " + level;
-        font.drawInBatch(levelText, -font.width(levelText) / 2.0F, -8, 0xFFFFFF, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, 15728880);
-
-        drawHealthBar(poseStack, bufferSource, healthRatio);
+        renderEntityHealthBar(poseStack, healthRatio);
         poseStack.popPose();
     }
 
-    private static void drawHealthBar(PoseStack poseStack, MultiBufferSource bufferSource, float healthRatio) {
+    private static void renderEntityHealthBar(PoseStack poseStack, float healthRatio) {
         int barWidth = 82;
         int barHeight = 8;
 
@@ -282,62 +252,5 @@ public class RenderHandler {
         bufferBuilder.vertex(poseStack.last().pose(), x + width, y, 0).uv(1, 0).endVertex();
         bufferBuilder.vertex(poseStack.last().pose(), x, y, 0).uv(0, 0).endVertex();
         tesselator.end();
-    }
-
-    private static int getEntityLevel(LivingEntity entity) {
-        return entity.getPersistentData().getInt("level");
-    }
-
-    private static void renderEntityIndicator(PoseStack poseStack, MultiBufferSource bufferSource, LivingEntity entity, int color, float partialTick) {
-        Minecraft minecraft = Minecraft.getInstance();
-
-        double x = Mth.lerp(partialTick, entity.xOld, entity.getX());
-        double y = Mth.lerp(partialTick, entity.yOld, entity.getY()) + entity.getBbHeight() + 0.5; // Above the entity
-        double z = Mth.lerp(partialTick, entity.zOld, entity.getZ());
-
-        Vec3 cameraPos = minecraft.getEntityRenderDispatcher().camera.getPosition();
-
-        poseStack.pushPose();
-        poseStack.translate(x - cameraPos.x, y - cameraPos.y, z - cameraPos.z);
-
-        poseStack.mulPose(minecraft.getEntityRenderDispatcher().cameraOrientation());
-        poseStack.scale(0.5F, 0.5F, 0.5F);
-
-        VertexConsumer vertexConsumer = bufferSource.getBuffer(RenderType.lines());
-        renderColoredPyramid(poseStack.last().pose(), vertexConsumer, color);
-
-        poseStack.popPose();
-    }
-
-    private static void renderColoredPyramid(Matrix4f matrix, VertexConsumer vertexConsumer, int color) {
-        float red = ((color >> 16) & 255) / 255.0F;
-        float green = ((color >> 8) & 255) / 255.0F;
-        float blue = (color & 255) / 255.0F;
-
-        // Base of the pyramid (square)
-        vertexConsumer.vertex(matrix, -0.5F, 0.0F, -0.5F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
-        vertexConsumer.vertex(matrix, 0.5F, 0.0F, -0.5F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
-
-        vertexConsumer.vertex(matrix, 0.5F, 0.0F, -0.5F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
-        vertexConsumer.vertex(matrix, 0.5F, 0.0F, 0.5F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
-
-        vertexConsumer.vertex(matrix, 0.5F, 0.0F, 0.5F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
-        vertexConsumer.vertex(matrix, -0.5F, 0.0F, 0.5F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
-
-        vertexConsumer.vertex(matrix, -0.5F, 0.0F, 0.5F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
-        vertexConsumer.vertex(matrix, -0.5F, 0.0F, -0.5F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
-
-        // Pyramid sides (connecting base to apex)
-        vertexConsumer.vertex(matrix, 0.0F, 1.0F, 0.0F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
-        vertexConsumer.vertex(matrix, -0.5F, 0.0F, -0.5F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
-
-        vertexConsumer.vertex(matrix, 0.0F, 1.0F, 0.0F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
-        vertexConsumer.vertex(matrix, 0.5F, 0.0F, -0.5F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
-
-        vertexConsumer.vertex(matrix, 0.0F, 1.0F, 0.0F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
-        vertexConsumer.vertex(matrix, 0.5F, 0.0F, 0.5F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
-
-        vertexConsumer.vertex(matrix, 0.0F, 1.0F, 0.0F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
-        vertexConsumer.vertex(matrix, -0.5F, 0.0F, 0.5F).color(red, green, blue, 1.0F).uv(0, 0).overlayCoords(0, 0).uv2(0, 0).normal(0, 0, 0).endVertex();
     }
 }
