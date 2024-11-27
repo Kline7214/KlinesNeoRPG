@@ -202,7 +202,7 @@ public class HpBarRenderer {
         Player player = minecraft.player;
 
         String eName = entity.getDisplayName().getString();
-        double eLv = entity.getPersistentData().getDouble("mobLevel");
+        int eLv = entity.getPersistentData().getInt("mobLevel");
         String eLvText = "Lv: " + eLv;
 
         String pName = player.getDisplayName().getString();
