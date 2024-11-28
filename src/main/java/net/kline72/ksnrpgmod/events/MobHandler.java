@@ -1,7 +1,9 @@
-package net.kline72.ksnrpgmod.util;
+package net.kline72.ksnrpgmod.events;
 
 import net.kline72.ksnrpgmod.KlinesNeoRPG;
+import net.kline72.ksnrpgmod.util.MobTagsUtil;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.IronGolem;
@@ -12,8 +14,24 @@ import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-@Mod.EventBusSubscriber(modid = KlinesNeoRPG.MODID)
-public class MobLevelUtil {
+@Mod.EventBusSubscriber(modid = KlinesNeoRPG.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+public class MobHandler {
+
+    @SubscribeEvent
+    public static void onMobSpawn(EntityJoinLevelEvent event) {
+        if (!(event.getEntity() instanceof Mob mob)) return;
+
+        if (MobTagsUtil.hasClassification(mob)) return;
+
+        if (mob instanceof Monster) {
+            MobTagsUtil.setMobClassification(mob, "Hostile");
+        } else if (mob instanceof IronGolem || mob instanceof Villager || mob instanceof Animal) {
+            MobTagsUtil.setMobClassification(mob, "Passive");
+        } else {
+            MobTagsUtil.setMobClassification(mob, "Neutral");
+        }
+    }
+
     @SubscribeEvent
     public static void onEntitySpawn(EntityJoinLevelEvent event) {
         if (!(event.getEntity() instanceof LivingEntity entity)) {

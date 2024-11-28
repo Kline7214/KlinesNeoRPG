@@ -3,25 +3,22 @@ package net.kline72.ksnrpgmod;
 import com.mojang.logging.LogUtils;
 import net.kline72.ksnrpgmod.capability.PlayerStats;
 import net.kline72.ksnrpgmod.capability.PlayerStatsProvider;
-import net.kline72.ksnrpgmod.events.CombatEventHandler;
-import net.kline72.ksnrpgmod.events.HpBarRenderer;
-//import net.kline72.ksnrpgmod.events.MobIndicatorRenderer;
+import net.kline72.ksnrpgmod.events.UiRenderHandler;
+import net.kline72.ksnrpgmod.events.MobHandler;
+import net.kline72.ksnrpgmod.events.PlayerActionHandler;
 import net.kline72.ksnrpgmod.item.KsnrpgCreativeTab;
 import net.kline72.ksnrpgmod.item.KsnrpgItems;
-import net.kline72.ksnrpgmod.util.LvUpUtil;
-import net.kline72.ksnrpgmod.util.PvPUtil;
+import net.kline72.ksnrpgmod.util.MobTagsUtil;
+import net.kline72.ksnrpgmod.util.PlayerTagsUtil;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -46,12 +43,12 @@ public class KlinesNeoRPG {
         modEventBus.addListener(this::commonSetup);
 
         MinecraftForge.EVENT_BUS.register(this);
-        MinecraftForge.EVENT_BUS.register(CombatEventHandler.class);
-        MinecraftForge.EVENT_BUS.register(HpBarRenderer.class);
-      //MinecraftForge.EVENT_BUS.register(MobIndicatorRenderer.class);
+        MinecraftForge.EVENT_BUS.register(UiRenderHandler.class);
+        MinecraftForge.EVENT_BUS.register(MobHandler.class);
+        MinecraftForge.EVENT_BUS.register(PlayerActionHandler.class);
 
-        MinecraftForge.EVENT_BUS.register(LvUpUtil.class);
-        MinecraftForge.EVENT_BUS.register(PvPUtil.class);
+        MinecraftForge.EVENT_BUS.register(MobTagsUtil.class);
+        MinecraftForge.EVENT_BUS.register(PlayerTagsUtil.class);
 
     }
 
