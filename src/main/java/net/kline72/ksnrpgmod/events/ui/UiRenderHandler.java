@@ -1,6 +1,7 @@
 
 package net.kline72.ksnrpgmod.events.ui;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.kline72.ksnrpgmod.KlinesNeoRPG;
@@ -230,6 +231,9 @@ public class UiRenderHandler {
         int barWidth = 82;
         int barHeight = 8;
 
+        RenderSystem.enableDepthTest();
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, ENTITY_EMPTY_BAR);
         RenderSystem.setShaderColor(1, 1, 1, 1);
@@ -241,6 +245,8 @@ public class UiRenderHandler {
         RenderSystem.setShaderColor(red, green, 0, 1);
         drawTexturedBar(poseStack, -barWidth / 2 + 1, 1, (int) (barWidth * healthRatio) - 2, barHeight - 2);
 
+        RenderSystem.disableBlend();
+        RenderSystem.disableDepthTest();
         RenderSystem.setShaderColor(1, 1, 1, 1);
     }
 

@@ -3,7 +3,8 @@ package net.kline72.ksnrpgmod;
 import com.mojang.logging.LogUtils;
 import net.kline72.ksnrpgmod.capability.PlayerStats;
 import net.kline72.ksnrpgmod.capability.PlayerStatsProvider;
-import net.kline72.ksnrpgmod.events.CombatEventHandler;
+import net.kline72.ksnrpgmod.events.mob.MobIndicator;
+import net.kline72.ksnrpgmod.events.player.CombatEventHandler;
 import net.kline72.ksnrpgmod.events.ui.UiRenderHandler;
 import net.kline72.ksnrpgmod.item.KsnrpgCreativeTab;
 import net.kline72.ksnrpgmod.item.KsnrpgItems;
@@ -44,7 +45,7 @@ public class KlinesNeoRPG {
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(CombatEventHandler.class);
         MinecraftForge.EVENT_BUS.register(UiRenderHandler.class);
-      //MinecraftForge.EVENT_BUS.register(MobIndicatorRenderer.class);
+        MinecraftForge.EVENT_BUS.register(MobIndicator.class);
 
         MinecraftForge.EVENT_BUS.register(LvUpUtil.class);
         MinecraftForge.EVENT_BUS.register(PvPUtil.class);

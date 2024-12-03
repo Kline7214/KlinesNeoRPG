@@ -21,12 +21,13 @@ public class MobLevelUtil {
         }
 
         LevelAccessor world = event.getLevel();
+
         double distance = 0;
         int mLevel;
 
         if (!entity.getPersistentData().getBoolean("scaled")) {
             distance = Math.sqrt(Math.pow(entity.getX() - world.getLevelData().getXSpawn(), 2) + Math.pow(entity.getZ() - world.getLevelData().getZSpawn(), 2));
-            mLevel = (int) Math.round(distance / 100);
+            mLevel = Math.max(1, Math.min(100, (int) Math.round(distance / 1500)));
             entity.getPersistentData().putInt("mobLevel", mLevel);
             if (event.getEntity() instanceof Monster) {
                 entity.getAttribute(Attributes.MAX_HEALTH).setBaseValue(entity.getAttributeBaseValue(Attributes.MAX_HEALTH) + entity.getPersistentData().getInt("mobLevel"));

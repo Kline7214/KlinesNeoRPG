@@ -26,6 +26,8 @@ public class PlayerStats {
     private int ula = 0;
     private int attPoints = 0;
     private boolean initialized = false;
+    private String behaviourState = "Green";
+    private int behaviourTimer = 0;
 
     public int getCurrentStamina(Player player) {
         int foodLevel = player.getFoodData().getFoodLevel();
@@ -107,6 +109,14 @@ public class PlayerStats {
         return initialized;
     }
 
+    public String getBehaviorState() {
+        return behaviourState;
+    }
+
+    public int getBehaviourTimer() {
+        return behaviourTimer;
+    }
+
     public void copyFrom(PlayerStats source) {
         this.mana = source.mana;
         this.maxMana = source.maxMana;
@@ -148,6 +158,8 @@ public class PlayerStats {
         nbt.putInt("ula", ula);
         nbt.putInt("attPoints", attPoints);
         nbt.putBoolean("initialized", initialized);
+        nbt.putString("behaviourState", behaviourState);
+        nbt.putInt("behaviourTimer", behaviourTimer);
     }
 
     public void loadNBTData(CompoundTag nbt) {
@@ -170,6 +182,8 @@ public class PlayerStats {
         ula = nbt.getInt("ula");
         attPoints = nbt.getInt("attPoints");
         initialized = nbt.getBoolean("initialized");
+        behaviourState = nbt.getString("behaviourState");
+        behaviourTimer = nbt.getInt("behaviourTimer");
     }
 
     public void setMana(int mana) {
@@ -228,6 +242,14 @@ public class PlayerStats {
     }
     public void setInitialized(boolean initialized) {
         this.initialized = initialized;
+    }
+
+    public void setBehaviorState(String behaviorState) {
+        this.behaviourState = behaviorState;
+    }
+
+    public void setBehaviourTimer(int behaviourTimer) {
+        this.behaviourTimer = behaviourTimer;
     }
 
     public void checkLevelUp() {
