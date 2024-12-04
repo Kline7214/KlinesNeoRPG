@@ -27,7 +27,8 @@ public class PlayerStats {
     private int attPoints = 0;
     private boolean initialized = false;
     private String behaviourState = "Green";
-    private int behaviourTimer = 0;
+    private long behaviourTimer = 0;
+    private int killCount = 0;
 
     public int getCurrentStamina(Player player) {
         int foodLevel = player.getFoodData().getFoodLevel();
@@ -108,13 +109,14 @@ public class PlayerStats {
     public boolean isInitialized() {
         return initialized;
     }
-
     public String getBehaviorState() {
         return behaviourState;
     }
-
-    public int getBehaviourTimer() {
+    public long getBehaviourTimer() {
         return behaviourTimer;
+    }
+    public int getKillCount() {
+        return killCount;
     }
 
     public void copyFrom(PlayerStats source) {
@@ -136,6 +138,9 @@ public class PlayerStats {
         this.playerLevel = source.playerLevel;
         this.ula = source.ula;
         this.attPoints = source.attPoints;
+        this.behaviourState = source.behaviourState;
+        this.behaviourTimer = source.behaviourTimer;
+        this.killCount = source.killCount;
     }
 
     public void saveNBTData(CompoundTag nbt) {
@@ -159,7 +164,8 @@ public class PlayerStats {
         nbt.putInt("attPoints", attPoints);
         nbt.putBoolean("initialized", initialized);
         nbt.putString("behaviourState", behaviourState);
-        nbt.putInt("behaviourTimer", behaviourTimer);
+        nbt.putLong("behaviourTimer", behaviourTimer);
+        nbt.putInt("killCount", killCount);
     }
 
     public void loadNBTData(CompoundTag nbt) {
@@ -183,7 +189,8 @@ public class PlayerStats {
         attPoints = nbt.getInt("attPoints");
         initialized = nbt.getBoolean("initialized");
         behaviourState = nbt.getString("behaviourState");
-        behaviourTimer = nbt.getInt("behaviourTimer");
+        behaviourTimer = nbt.getLong("behaviourTimer");
+        killCount = nbt.getInt("killCount");
     }
 
     public void setMana(int mana) {
@@ -243,13 +250,14 @@ public class PlayerStats {
     public void setInitialized(boolean initialized) {
         this.initialized = initialized;
     }
-
     public void setBehaviorState(String behaviorState) {
         this.behaviourState = behaviorState;
     }
-
-    public void setBehaviourTimer(int behaviourTimer) {
+    public void setBehaviourTimer(long behaviourTimer) {
         this.behaviourTimer = behaviourTimer;
+    }
+    public void setKillCount(int killCount) {
+        this.killCount = killCount;
     }
 
     public void checkLevelUp() {
